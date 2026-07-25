@@ -1,0 +1,130 @@
+// Prisma schema for SoloQ Tracker (unofficial fan project)
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// A tracked participant. Either an official challenge participant or the
+/// site owner's own "unofficial" account.
+model Player {
+  id              String   @id @default(cuid())
+  gameName        String
+  tagLine         String
+  puuid           String   @unique
+  summonerId      String?
+  profileIconId   Int      @default(0)
+  platform        String   @default("euw1") // Riot platform routing value, e.g. euw1, na1, kr
+
+  isUnofficial    Boolean  @default(false) // true only for the site owner's own account
+  isActive        Boolean  @default(true) // soft-disable without deleting history
+  displayOrder    Int      @default(0) // manual ordering fallback / tie-breaker
+
+  // Latest snapshot (denormalized for fast leaderboard reads)
+  tier            String? // IRON, BRONZE, ... CHALLENGER
+  rankDivision    String? // I, II, III, IV (null for apex tiers)
+  leaguePoints    Int      @default(0)
+  wins            Int      @default(0)
+  losses          Int      @default(0)
+  previousLp      Int? // LP at the prior update, used to compute delta
+  previousRankValue Int? // absolute rank value at prior update (for delta across tiers)
+
+  mainRole        String?
+  avgKda          Float?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lpHistory       LpHistory[]
+  matches         MatchHistory[]
+  apiErrors       ApiError[]
+
+  @@unique([gameName, tagLine, platform])
+  @@index([leaguePoints])
+}
+
+/// One row per update run per player: the LP/rank snapshot at that point in time.
+/// This is what powers the evolution chart and the "day 1, day 2..." history view.
+model LpHistory {
+  id             String   @id @default(cuid())
+  playerId       String
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  tier           String
+  rankDivision   String?
+  leaguePoints   Int
+  wins           Int
+  losses         Int
+  delta          Int      @default(0) // LP change vs the previous snapshot
+
+  updateLogId    String?
+  updateLog      UpdateLog? @relation(fields: [updateLogId], references: [id], onDelete: SetNull)
+
+  capturedAt     DateTime @default(now())
+
+  @@index([playerId, capturedAt])
+}
+
+/// A single ranked match pulled from Match-V5, used for recent games / champions / KDA.
+model MatchHistory {
+  id            String   @id @default(cuid())
+  playerId      String
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  matchId       String
+  champion      String
+  win           Boolean
+  kills         Int
+  deaths        Int
+  assists       Int
+  role          String?
+  lane          String?
+  queueId       Int      @default(420) // 420 = ranked solo/duo
+  gameCreation  DateTime
+
+  createdAt     DateTime @default(now())
+
+  @@unique([playerId, matchId])
+  @@index([playerId, gameCreation])
+}
+
+/// A record of each "Actualizar clasificación" run triggered from the admin panel.
+model UpdateLog {
+  id              String    @id @default(cuid())
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
+  status          String    @default("running") // running | success | partial | error
+  playersUpdated  Int       @default(0)
+  playersFailed   Int       @default(0)
+  triggeredBy     String    @default("admin")
+
+  lpSnapshots     LpHistory[]
+  apiErrors       ApiError[]
+}
+
+/// Riot API errors captured during an update run, surfaced in the admin panel.
+model ApiError {
+  id           String     @id @default(cuid())
+  updateLogId  String?
+  updateLog    UpdateLog? @relation(fields: [updateLogId], references: [id], onDelete: SetNull)
+  playerId     String?
+  player       Player?    @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  endpoint     String
+  statusCode   Int?
+  message      String
+
+  createdAt    DateTime   @default(now())
+}
+
+/// Generic key-value site configuration (maintenance mode, unofficial player puuid, etc.)
+model Config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
