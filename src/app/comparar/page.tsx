@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { getPlayerById } from "@/lib/queries/players";
+import { getHeadToHead, getPlayerById, type HeadToHeadMatch } from "@/lib/queries/players";
 import { championIconUrl, getLatestDDragonVersion } from "@/lib/riot/ddragon";
 import { formatRank, formatRole, winrate } from "@/lib/ranks";
+import { Badge } from "@/components/ui/badge";
 import { PlayerPicker } from "@/components/player-picker";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { LpEvolutionChart } from "@/components/lp-evolution-chart";
@@ -26,6 +27,8 @@ export default async function ComparePage({
     b ? getPlayerById(b) : null,
     getLatestDDragonVersion(),
   ]);
+
+  const headToHead = playerA && playerB ? await getHeadToHead(playerA.id, playerB.id) : null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-10">
@@ -81,6 +84,22 @@ export default async function ComparePage({
               <ComparisonRow label="Rol principal" a={formatRole(playerA.mainRole)} b={formatRole(playerB.mainRole)} />
             </CardContent>
           </Card>
+
+          {headToHead && headToHead.matches.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Enfrentamientos directos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <HeadToHeadSection
+                  headToHead={headToHead}
+                  playerA={playerA}
+                  playerB={playerB}
+                  ddragonVersion={ddragonVersion}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -142,6 +161,83 @@ function ComparisonRow({ label, a, b }: { label: string; a: string; b: string })
       <span className="text-right font-mono">{a}</span>
       <span className="text-center text-muted-foreground">{label}</span>
       <span className="font-mono">{b}</span>
+    </div>
+  );
+}
+
+function HeadToHeadSection({
+  headToHead,
+  playerA,
+  playerB,
+  ddragonVersion,
+}: {
+  headToHead: Awaited<ReturnType<typeof getHeadToHead>>;
+  playerA: { gameName: string };
+  playerB: { gameName: string };
+  ddragonVersion: string;
+}) {
+  const { matches, teammates, opponents } = headToHead;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {teammates.games > 0 && (
+          <div className="rounded-lg border border-border/60 p-3 text-sm">
+            <p className="font-medium">Como compañeros</p>
+            <p className="text-muted-foreground">
+              {teammates.games} partidas · {teammates.wins} victorias juntos (
+              {winrate(teammates.wins, teammates.games - teammates.wins)}%)
+            </p>
+          </div>
+        )}
+        {opponents.games > 0 && (
+          <div className="rounded-lg border border-border/60 p-3 text-sm">
+            <p className="font-medium">Como rivales</p>
+            <p className="text-muted-foreground">
+              {opponents.games} partidas · {playerA.gameName} ganó {opponents.aWins} · {playerB.gameName} ganó{" "}
+              {opponents.bWins}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <ul className="space-y-2">
+        {matches.slice(0, 20).map((m: HeadToHeadMatch) => (
+          <li
+            key={m.matchId}
+            className="flex items-center gap-3 rounded-lg border border-border/60 bg-card/60 px-3 py-2 text-sm"
+          >
+            <Badge variant="outline" className="shrink-0 text-xs">
+              {m.sameTeam ? "Compañeros" : "Rivales"}
+            </Badge>
+            <div className="flex flex-1 items-center gap-2">
+              <Image
+                src={championIconUrl(ddragonVersion, m.championA)}
+                alt={m.championA}
+                width={28}
+                height={28}
+                className="rounded-md"
+              />
+              <span className="text-muted-foreground">{m.championA}</span>
+              <span className="text-muted-foreground">vs</span>
+              <Image
+                src={championIconUrl(ddragonVersion, m.championB)}
+                alt={m.championB}
+                width={28}
+                height={28}
+                className="rounded-md"
+              />
+              <span className="text-muted-foreground">{m.championB}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {m.gameCreation.toLocaleDateString("es-ES")}
+            </span>
+            <span className={m.aWin ? "text-sm font-medium text-emerald-400" : "text-sm font-medium text-rose-400"}>
+              {m.sameTeam ? (m.aWin ? "Victoria" : "Derrota") : m.aWin ? `Gana ${playerA.gameName}` : `Gana ${playerB.gameName}`}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

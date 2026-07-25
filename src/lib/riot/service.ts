@@ -13,7 +13,7 @@ import type { RiotMatchDto } from "./types";
 const RANKED_SOLO_QUEUE = "RANKED_SOLO_5x5";
 const MATCH_LOOKBACK_DAYS = 30;
 // Safety cap so a single very active player can't blow up one update run's API budget.
-const MAX_MATCHES_PER_UPDATE = 50;
+const MAX_MATCHES_PER_UPDATE = 100;
 
 /** Ensures the site owner's own account exists as a Player row flagged isUnofficial. */
 export async function ensureUnofficialPlayer() {
@@ -91,6 +91,9 @@ async function updateOnePlayer(
         ? rankValue(player.tier, player.rankDivision, player.previousLp ?? player.leaguePoints)
         : null;
 
+    // Keep the transaction limited to the two fast, atomic writes. Match history can run into
+    // the hundreds of rows and upserting them all inside one transaction risks hitting Prisma's
+    // interactive transaction timeout, so those go outside as independent, idempotent upserts.
     await prisma.$transaction(async (tx) => {
       await tx.player.update({
         where: { id: player.id },
@@ -122,27 +125,27 @@ async function updateOnePlayer(
           updateLogId,
         },
       });
+    });
 
-      for (const { match, participant: p } of participantEntries) {
-        await tx.matchHistory.upsert({
-          where: { playerId_matchId: { playerId: player.id, matchId: match.metadata.matchId } },
-          update: {},
-          create: {
-            playerId: player.id,
-            matchId: match.metadata.matchId,
-            champion: p.championName,
-            win: p.win,
-            kills: p.kills,
-            deaths: p.deaths,
-            assists: p.assists,
-            role: p.teamPosition || null,
-            lane: p.lane || null,
-            queueId: match.info.queueId,
-            gameCreation: new Date(match.info.gameCreation),
-          },
-        });
-      }
-    }, { timeout: 20_000 });
+    for (const { match, participant: p } of participantEntries) {
+      await prisma.matchHistory.upsert({
+        where: { playerId_matchId: { playerId: player.id, matchId: match.metadata.matchId } },
+        update: {},
+        create: {
+          playerId: player.id,
+          matchId: match.metadata.matchId,
+          champion: p.championName,
+          win: p.win,
+          kills: p.kills,
+          deaths: p.deaths,
+          assists: p.assists,
+          role: p.teamPosition || null,
+          lane: p.lane || null,
+          queueId: match.info.queueId,
+          gameCreation: new Date(match.info.gameCreation),
+        },
+      });
+    }
 
     return { ok: true };
   } catch (err) {

@@ -9,6 +9,9 @@ import { PlayerList } from "@/components/admin/player-list";
 import { ApiErrorList } from "@/components/admin/api-error-list";
 
 export const dynamic = "force-dynamic";
+// The Riot API rate limiter serializes requests, so updating many players
+// with a wide match history can take a while — give the Server Action room.
+export const maxDuration = 300;
 
 export default async function AdminPage() {
   const [players, lastUpdates, recentErrors] = await Promise.all([
