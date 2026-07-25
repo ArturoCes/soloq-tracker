@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, Swords } from "lucide-react";
@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { href: "/comparar", label: "Comparador" },
 ];
 
-export function NavBar() {
+export function NavBar({ liveBadge }: { liveBadge?: ReactNode }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -62,7 +62,8 @@ export function NavBar() {
           <Input name="q" placeholder="Buscar jugador..." className="h-9" />
         </form>
 
-        <div className="ml-auto flex items-center gap-1 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 md:ml-0">
+          {liveBadge}
           <ThemeToggle />
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>

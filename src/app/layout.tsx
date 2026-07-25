@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -6,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { NavBar } from "@/components/nav-bar";
 import { SiteFooter } from "@/components/site-footer";
+import { TwitchLiveBadge } from "@/components/twitch-live-badge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,7 +59,13 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <TooltipProvider>
-            <NavBar />
+            <NavBar
+              liveBadge={
+                <Suspense fallback={null}>
+                  <TwitchLiveBadge />
+                </Suspense>
+              }
+            />
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <Toaster />

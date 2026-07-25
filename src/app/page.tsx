@@ -2,6 +2,7 @@ import { getLeaderboard } from "@/lib/queries/players";
 import { getLatestDDragonVersion } from "@/lib/riot/ddragon";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { FadeIn } from "@/components/fade-in";
+import { ExportImageButton } from "@/components/export-image-button";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -25,21 +26,26 @@ export default async function HomePage() {
             Seguimiento no oficial del SoloQ Challenge — {entries.length} jugadores en pista.
           </p>
         </div>
-        {lastUpdate?.finishedAt && (
-          <p className="text-sm text-muted-foreground">
-            Última actualización:{" "}
-            <span className="text-foreground">
-              {lastUpdate.finishedAt.toLocaleString("es-ES", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </span>
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {lastUpdate?.finishedAt && (
+            <p className="text-sm text-muted-foreground">
+              Última actualización:{" "}
+              <span className="text-foreground">
+                {lastUpdate.finishedAt.toLocaleString("es-ES", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </span>
+            </p>
+          )}
+          <ExportImageButton targetId="leaderboard-capture" fileName="soloq-clasificacion.png" />
+        </div>
       </div>
 
       <FadeIn>
-        <LeaderboardTable entries={entries} ddragonVersion={ddragonVersion} />
+        <div id="leaderboard-capture" className="bg-background p-1">
+          <LeaderboardTable entries={entries} ddragonVersion={ddragonVersion} />
+        </div>
       </FadeIn>
     </div>
   );
