@@ -97,10 +97,17 @@ export async function getLeagueEntriesByPuuid(
 export async function getMatchIdsByPuuid(
   puuid: string,
   platform: string,
-  count = 10
+  options: { count?: number; startTime?: number } = {}
 ): Promise<string[]> {
+  const { count = 10, startTime } = options;
   const region = regionalRoutingFor(platform);
-  const url = `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=${count}`;
+  const params = new URLSearchParams({
+    queue: "420",
+    start: "0",
+    count: String(count),
+  });
+  if (startTime != null) params.set("startTime", String(startTime));
+  const url = `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?${params}`;
   return riotFetch<string[]>(url, "match-ids-by-puuid");
 }
 

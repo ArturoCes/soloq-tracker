@@ -11,7 +11,9 @@ import { rankValue } from "./regions";
 import type { RiotMatchDto } from "./types";
 
 const RANKED_SOLO_QUEUE = "RANKED_SOLO_5x5";
-const RECENT_MATCH_COUNT = 10;
+const MATCH_LOOKBACK_DAYS = 30;
+// Safety cap so a single very active player can't blow up one update run's API budget.
+const MAX_MATCHES_PER_UPDATE = 50;
 
 /** Ensures the site owner's own account exists as a Player row flagged isUnofficial. */
 export async function ensureUnofficialPlayer() {
@@ -51,7 +53,11 @@ async function updateOnePlayer(
 
     const soloQueue = leagueEntries.find((e) => e.queueType === RANKED_SOLO_QUEUE);
 
-    const matchIds = await getMatchIdsByPuuid(puuid, player.platform, RECENT_MATCH_COUNT);
+    const startTime = Math.floor((Date.now() - MATCH_LOOKBACK_DAYS * 24 * 60 * 60 * 1000) / 1000);
+    const matchIds = await getMatchIdsByPuuid(puuid, player.platform, {
+      count: MAX_MATCHES_PER_UPDATE,
+      startTime,
+    });
     const matches: RiotMatchDto[] = [];
     for (const matchId of matchIds) {
       const match = await getMatchById(matchId, player.platform);
@@ -136,7 +142,7 @@ async function updateOnePlayer(
           },
         });
       }
-    });
+    }, { timeout: 20_000 });
 
     return { ok: true };
   } catch (err) {
