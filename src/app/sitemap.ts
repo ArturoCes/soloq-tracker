@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+// Render at request time instead of build time: the player list changes
+// often, and the database isn't guaranteed to be reachable from the build step.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const players = await prisma.player.findMany({
     where: { isActive: true },
