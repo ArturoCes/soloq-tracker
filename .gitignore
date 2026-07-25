@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — .env only holds the local SQLite path (not secret), safe to commit;
-# real secrets (Riot API key, admin password) live in .env.local, which is ignored.
+# env files — both hold real secrets now (Postgres connection string, Riot API
+# key, admin password). Never commit these; see .env.example for the required keys.
+.env
 .env.local
 .env*.local
 

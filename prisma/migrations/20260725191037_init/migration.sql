@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "Player" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "gameName" TEXT NOT NULL,
     "tagLine" TEXT NOT NULL,
     "puuid" TEXT NOT NULL,
@@ -18,14 +18,16 @@ CREATE TABLE "Player" (
     "previousLp" INTEGER,
     "previousRankValue" INTEGER,
     "mainRole" TEXT,
-    "avgKda" REAL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "avgKda" DOUBLE PRECISION,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "LpHistory" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "playerId" TEXT NOT NULL,
     "tier" TEXT NOT NULL,
     "rankDivision" TEXT,
@@ -34,14 +36,14 @@ CREATE TABLE "LpHistory" (
     "losses" INTEGER NOT NULL,
     "delta" INTEGER NOT NULL DEFAULT 0,
     "updateLogId" TEXT,
-    "capturedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "LpHistory_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "LpHistory_updateLogId_fkey" FOREIGN KEY ("updateLogId") REFERENCES "UpdateLog" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "capturedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "LpHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "MatchHistory" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "playerId" TEXT NOT NULL,
     "matchId" TEXT NOT NULL,
     "champion" TEXT NOT NULL,
@@ -52,40 +54,45 @@ CREATE TABLE "MatchHistory" (
     "role" TEXT,
     "lane" TEXT,
     "queueId" INTEGER NOT NULL DEFAULT 420,
-    "gameCreation" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "MatchHistory_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "gameCreation" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MatchHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "UpdateLog" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "startedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "finishedAt" DATETIME,
+    "id" TEXT NOT NULL,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "finishedAt" TIMESTAMP(3),
     "status" TEXT NOT NULL DEFAULT 'running',
     "playersUpdated" INTEGER NOT NULL DEFAULT 0,
     "playersFailed" INTEGER NOT NULL DEFAULT 0,
-    "triggeredBy" TEXT NOT NULL DEFAULT 'admin'
+    "triggeredBy" TEXT NOT NULL DEFAULT 'admin',
+
+    CONSTRAINT "UpdateLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ApiError" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "updateLogId" TEXT,
     "playerId" TEXT,
     "endpoint" TEXT NOT NULL,
     "statusCode" INTEGER,
     "message" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ApiError_updateLogId_fkey" FOREIGN KEY ("updateLogId") REFERENCES "UpdateLog" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "ApiError_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ApiError_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Config" (
-    "key" TEXT NOT NULL PRIMARY KEY,
+    "key" TEXT NOT NULL,
     "value" TEXT NOT NULL,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Config_pkey" PRIMARY KEY ("key")
 );
 
 -- CreateIndex
@@ -105,3 +112,18 @@ CREATE INDEX "MatchHistory_playerId_gameCreation_idx" ON "MatchHistory"("playerI
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MatchHistory_playerId_matchId_key" ON "MatchHistory"("playerId", "matchId");
+
+-- AddForeignKey
+ALTER TABLE "LpHistory" ADD CONSTRAINT "LpHistory_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LpHistory" ADD CONSTRAINT "LpHistory_updateLogId_fkey" FOREIGN KEY ("updateLogId") REFERENCES "UpdateLog"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MatchHistory" ADD CONSTRAINT "MatchHistory_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ApiError" ADD CONSTRAINT "ApiError_updateLogId_fkey" FOREIGN KEY ("updateLogId") REFERENCES "UpdateLog"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ApiError" ADD CONSTRAINT "ApiError_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
