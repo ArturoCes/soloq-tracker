@@ -65,18 +65,38 @@ export async function getDashboardStats() {
       .filter((x) => x.count > 0)
       .sort((a, b) => b.count - a.count)[0] ?? null;
 
-  let mostKillsSingleGame: { player: (typeof players)[number]; match: (typeof players)[number]["matches"][number] } | null = null;
-  let mostAssistsSingleGame: { player: (typeof players)[number]; match: (typeof players)[number]["matches"][number] } | null = null;
-  for (const player of players) {
-    for (const match of player.matches) {
-      if (!mostKillsSingleGame || match.kills > mostKillsSingleGame.match.kills) {
-        mostKillsSingleGame = { player, match };
-      }
-      if (!mostAssistsSingleGame || match.assists > mostAssistsSingleGame.match.assists) {
-        mostAssistsSingleGame = { player, match };
+  type PlayerT = (typeof players)[number];
+  type MatchT = PlayerT["matches"][number];
+
+  function bestMatchBy(metric: (m: MatchT) => number) {
+    let best: { player: PlayerT; match: MatchT } | null = null;
+    for (const player of players) {
+      for (const match of player.matches) {
+        if (!best || metric(match) > metric(best.match)) best = { player, match };
       }
     }
+    return best && metric(best.match) > 0 ? best : null;
   }
+
+  const mostKillsSingleGame = bestMatchBy((m) => m.kills);
+  const mostAssistsSingleGame = bestMatchBy((m) => m.assists);
+  const mostDamageSingleGame = bestMatchBy((m) => m.totalDamageDealtToChamps);
+  const bestVisionSingleGame = bestMatchBy((m) => m.visionScore);
+  const mostGoldSingleGame = bestMatchBy((m) => m.goldEarned);
+
+  // Best multikill: penta beats quadra beats triple beats double.
+  const bestMultikill = bestMatchBy(
+    (m) => m.pentaKills * 1000 + m.quadraKills * 100 + m.tripleKills * 10 + m.doubleKills
+  );
+  const multikillLabel = bestMultikill
+    ? bestMultikill.match.pentaKills > 0
+      ? "Pentakill"
+      : bestMultikill.match.quadraKills > 0
+        ? "Quadrakill"
+        : bestMultikill.match.tripleKills > 0
+          ? "Triple kill"
+          : "Doble kill"
+    : null;
 
   return {
     biggestGainer,
@@ -89,5 +109,10 @@ export async function getDashboardStats() {
     mostChampionsWon,
     mostKillsSingleGame,
     mostAssistsSingleGame,
+    mostDamageSingleGame,
+    bestVisionSingleGame,
+    mostGoldSingleGame,
+    bestMultikill,
+    multikillLabel,
   };
 }

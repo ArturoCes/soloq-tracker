@@ -33,6 +33,13 @@ export type RiotMatchParticipantDto = {
   assists: number;
   teamPosition: string; // TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY
   lane: string;
+  pentaKills: number;
+  quadraKills: number;
+  tripleKills: number;
+  doubleKills: number;
+  totalDamageDealtToChampions: number;
+  visionScore: number;
+  goldEarned: number;
 };
 
 export type RiotMatchDto = {

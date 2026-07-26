@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
+  Coins,
   Crosshair,
   Crown,
+  Eye,
   Flame,
   HeartHandshake,
   Skull,
@@ -11,6 +13,7 @@ import {
   TrendingDown,
   TrendingUp,
   Trophy,
+  Zap,
 } from "lucide-react";
 import { getDashboardStats } from "@/lib/queries/dashboard";
 import { winrate } from "@/lib/ranks";
@@ -136,6 +139,45 @@ export default async function DashboardPage() {
             stats.mostAssistsSingleGame ? `${stats.mostAssistsSingleGame.match.assists} asistencias` : null
           }
           prize={stats.mostAssistsSingleGame ? formatPrizeEur(250) : null}
+        />
+        <HighlightCard
+          icon={<Zap className="size-5 text-amber-300" />}
+          title="Mejor multikill"
+          subtitle="Racha de asesinatos en una partida"
+          player={stats.bestMultikill?.player}
+          value={stats.multikillLabel}
+        />
+        <HighlightCard
+          icon={<Crosshair className="size-5 text-pink-400" />}
+          title="Más daño a campeones"
+          subtitle="Récord en una partida"
+          player={stats.mostDamageSingleGame?.player}
+          value={
+            stats.mostDamageSingleGame
+              ? `${stats.mostDamageSingleGame.match.totalDamageDealtToChamps.toLocaleString("es-ES")} daño`
+              : null
+          }
+          prize={stats.mostDamageSingleGame ? formatPrizeEur(250) : null}
+        />
+        <HighlightCard
+          icon={<Eye className="size-5 text-cyan-300" />}
+          title="Mejor puntuación de visión"
+          subtitle="Récord en una partida"
+          player={stats.bestVisionSingleGame?.player}
+          value={stats.bestVisionSingleGame ? `${stats.bestVisionSingleGame.match.visionScore} visión` : null}
+          prize={stats.bestVisionSingleGame ? formatPrizeEur(250) : null}
+        />
+        <HighlightCard
+          icon={<Coins className="size-5 text-yellow-500" />}
+          title="Más oro en una partida"
+          subtitle="Récord individual"
+          player={stats.mostGoldSingleGame?.player}
+          value={
+            stats.mostGoldSingleGame
+              ? `${stats.mostGoldSingleGame.match.goldEarned.toLocaleString("es-ES")} oro`
+              : null
+          }
+          prize={stats.mostGoldSingleGame ? formatPrizeEur(250) : null}
         />
       </div>
 

@@ -128,22 +128,28 @@ async function updateOnePlayer(
     });
 
     for (const { match, participant: p } of participantEntries) {
+      const matchFields = {
+        champion: p.championName,
+        win: p.win,
+        kills: p.kills,
+        deaths: p.deaths,
+        assists: p.assists,
+        role: p.teamPosition || null,
+        lane: p.lane || null,
+        queueId: match.info.queueId,
+        gameCreation: new Date(match.info.gameCreation),
+        pentaKills: p.pentaKills,
+        quadraKills: p.quadraKills,
+        tripleKills: p.tripleKills,
+        doubleKills: p.doubleKills,
+        totalDamageDealtToChamps: p.totalDamageDealtToChampions,
+        visionScore: p.visionScore,
+        goldEarned: p.goldEarned,
+      };
       await prisma.matchHistory.upsert({
         where: { playerId_matchId: { playerId: player.id, matchId: match.metadata.matchId } },
-        update: {},
-        create: {
-          playerId: player.id,
-          matchId: match.metadata.matchId,
-          champion: p.championName,
-          win: p.win,
-          kills: p.kills,
-          deaths: p.deaths,
-          assists: p.assists,
-          role: p.teamPosition || null,
-          lane: p.lane || null,
-          queueId: match.info.queueId,
-          gameCreation: new Date(match.info.gameCreation),
-        },
+        update: matchFields,
+        create: { playerId: player.id, matchId: match.metadata.matchId, ...matchFields },
       });
     }
 

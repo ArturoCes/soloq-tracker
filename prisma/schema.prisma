@@ -87,6 +87,15 @@ model MatchHistory {
   queueId       Int      @default(420) // 420 = ranked solo/duo
   gameCreation  DateTime
 
+  // Highlight-worthy stats, straight from Match-V5 — power the "mejores partidas" cards.
+  pentaKills               Int @default(0)
+  quadraKills              Int @default(0)
+  tripleKills              Int @default(0)
+  doubleKills              Int @default(0)
+  totalDamageDealtToChamps Int @default(0)
+  visionScore              Int @default(0)
+  goldEarned               Int @default(0)
+
   createdAt     DateTime @default(now())
 
   @@unique([playerId, matchId])
