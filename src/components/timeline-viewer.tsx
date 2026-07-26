@@ -26,9 +26,11 @@ export function TimelineViewer({
 
   useEffect(() => {
     if (!playing || atEnd) return;
+    // Depending on `index` (not just `atEnd`) makes this effect re-run after every
+    // step, so a new timer gets scheduled each time instead of firing only once.
     const timer = setTimeout(() => setIndex((i) => Math.min(i + 1, snapshots.length - 1)), STEP_MS);
     return () => clearTimeout(timer);
-  }, [playing, atEnd, snapshots.length]);
+  }, [playing, atEnd, index, snapshots.length]);
 
   const isPlaying = playing && !atEnd;
 
