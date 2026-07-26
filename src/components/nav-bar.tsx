@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: "/", label: "Clasificación" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparar", label: "Comparador" },
+  { href: "/historial", label: "Historial" },
 ];
 
 export function NavBar({ liveBadge }: { liveBadge?: ReactNode }) {

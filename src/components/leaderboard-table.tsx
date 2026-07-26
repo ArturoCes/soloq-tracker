@@ -13,6 +13,7 @@ import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
 import type { LeaderboardEntry } from "@/lib/queries/players";
 import { formatPrizeEur, prizeForPosition } from "@/lib/prizes";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function LeaderboardTable({
   entries,
@@ -81,7 +82,19 @@ export function LeaderboardTable({
                 <DeltaBadge delta={entry.delta} className="justify-end" />
               </TableCell>
               <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                {prize != null ? formatPrizeEur(prize) : "—"}
+                {prize != null ? (
+                  <Tooltip>
+                    <TooltipTrigger className="underline decoration-dotted underline-offset-2">
+                      {formatPrizeEur(prize)}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Puesto {index + 1}: {formatPrizeEur(prize)} según el baremo oficial del SoloQ
+                      Challenge (Low Elo). Estimado sobre esta clasificación, no la oficial.
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  "—"
+                )}
               </TableCell>
             </TableRow>
             );
