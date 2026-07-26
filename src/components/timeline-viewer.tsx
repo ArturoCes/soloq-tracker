@@ -10,7 +10,7 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import { formatRank, TIER_COLOR } from "@/lib/ranks";
 import type { TimelineSnapshot } from "@/lib/queries/timeline";
 
-const STEP_MS = 1400;
+const STEP_MS = 600;
 
 export function TimelineViewer({
   snapshots,
@@ -86,7 +86,7 @@ export function TimelineViewer({
           <motion.li
             key={entry.playerId}
             layout
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 500, damping: 35 }}
             className="flex items-center gap-3"
           >
             <span className="w-5 shrink-0 text-right font-mono text-sm text-muted-foreground">
