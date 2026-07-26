@@ -12,6 +12,7 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
 import type { LeaderboardEntry } from "@/lib/queries/players";
+import { formatPrizeEur, prizeForPosition } from "@/lib/prizes";
 
 export function LeaderboardTable({
   entries,
@@ -33,10 +34,13 @@ export function LeaderboardTable({
             <TableHead className="text-right">D</TableHead>
             <TableHead className="text-right">Winrate</TableHead>
             <TableHead className="text-right">Cambio</TableHead>
+            <TableHead className="text-right">Premio*</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {entries.map((entry, index) => (
+          {entries.map((entry, index) => {
+            const prize = prizeForPosition(index + 1);
+            return (
             <TableRow
               key={entry.id}
               className="group cursor-pointer transition-colors hover:bg-accent/60"
@@ -76,11 +80,15 @@ export function LeaderboardTable({
               <TableCell className="text-right">
                 <DeltaBadge delta={entry.delta} className="justify-end" />
               </TableCell>
+              <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                {prize != null ? formatPrizeEur(prize) : "—"}
+              </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
           {entries.length === 0 && (
             <TableRow>
-              <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+              <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                 Todavía no hay jugadores en la clasificación. Añádelos desde el panel de
                 administración.
               </TableCell>
@@ -88,6 +96,13 @@ export function LeaderboardTable({
           )}
         </TableBody>
       </Table>
+      {entries.length > 0 && (
+        <p className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
+          * Premio orientativo según el baremo oficial por posición del SoloQ Challenge (categoría
+          Low Elo). No es la clasificación oficial del reto: se calcula sobre los jugadores que
+          esta web rastrea, no sobre todos los participantes reales.
+        </p>
+      )}
     </div>
   );
 }
