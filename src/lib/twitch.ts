@@ -50,3 +50,83 @@ export async function isChannelLive(): Promise<boolean> {
     return false;
   }
 }
+
+let cachedBroadcasterId: string | null = null;
+
+async function getBroadcasterId(): Promise<string | null> {
+  if (cachedBroadcasterId) return cachedBroadcasterId;
+
+  const clientId = process.env.TWITCH_CLIENT_ID;
+  const token = await getAppAccessToken();
+  if (!clientId || !token) return null;
+
+  const res = await fetch(
+    `https://api.twitch.tv/helix/users?login=${encodeURIComponent(TWITCH_LOGIN)}`,
+    { headers: { "Client-Id": clientId, Authorization: `Bearer ${token}` }, next: { revalidate: 3600 } }
+  );
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as { data: { id: string }[] };
+  const id = data.data[0]?.id ?? null;
+  cachedBroadcasterId = id;
+  return id;
+}
+
+export type TwitchClip = {
+  id: string;
+  url: string;
+  embedUrl: string;
+  title: string;
+  viewCount: number;
+  createdAt: string;
+  thumbnailUrl: string;
+  durationSeconds: number;
+};
+
+/** The channel's most-viewed clips, via Twitch's official Helix API. Empty if not configured. */
+export async function getTopClips(limit = 24): Promise<TwitchClip[]> {
+  try {
+    const clientId = process.env.TWITCH_CLIENT_ID;
+    const token = await getAppAccessToken();
+    const broadcasterId = await getBroadcasterId();
+    if (!clientId || !token || !broadcasterId) return [];
+
+    const res = await fetch(
+      `https://api.twitch.tv/helix/clips?broadcaster_id=${broadcasterId}&first=100`,
+      {
+        headers: { "Client-Id": clientId, Authorization: `Bearer ${token}` },
+        next: { revalidate: 300 },
+      }
+    );
+    if (!res.ok) return [];
+
+    const data = (await res.json()) as {
+      data: {
+        id: string;
+        url: string;
+        embed_url: string;
+        title: string;
+        view_count: number;
+        created_at: string;
+        thumbnail_url: string;
+        duration: number;
+      }[];
+    };
+
+    return data.data
+      .sort((a, b) => b.view_count - a.view_count)
+      .slice(0, limit)
+      .map((c) => ({
+        id: c.id,
+        url: c.url,
+        embedUrl: c.embed_url,
+        title: c.title,
+        viewCount: c.view_count,
+        createdAt: c.created_at,
+        thumbnailUrl: c.thumbnail_url,
+        durationSeconds: c.duration,
+      }));
+  } catch {
+    return [];
+  }
+}
