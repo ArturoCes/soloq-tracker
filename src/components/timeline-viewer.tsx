@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlayerAvatar } from "@/components/player-avatar";
-import { formatRank, TIER_COLOR } from "@/lib/ranks";
+import { displayName, formatRank, TIER_COLOR } from "@/lib/ranks";
 import type { TimelineSnapshot } from "@/lib/queries/timeline";
 
 const STEP_MS = 600;
@@ -102,8 +102,10 @@ export function TimelineViewer({
                 style={{ width: `${Math.max(12, (entry.rankVal / maxRankVal) * 100)}%` }}
               >
                 <span className="truncate text-sm font-medium">
-                  {entry.gameName}
-                  <span className="ml-1 text-xs text-muted-foreground">#{entry.tagLine}</span>
+                  {displayName(entry)}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {entry.gameName}#{entry.tagLine}
+                  </span>
                 </span>
                 {entry.isUnofficial && (
                   <Badge variant="outline" className="shrink-0 border-emerald-500/40 text-[10px] text-emerald-400">

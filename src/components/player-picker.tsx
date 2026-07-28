@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { formatRank } from "@/lib/ranks";
+import { displayName, formatRank } from "@/lib/ranks";
 
 type Result = {
   id: string;
   gameName: string;
   tagLine: string;
+  streamerName: string | null;
   tier: string | null;
   rankDivision: string | null;
   leaguePoints: number;
@@ -38,7 +39,7 @@ export function PlayerPicker({ slot, label }: { slot: "a" | "b"; label: string }
     const params = new URLSearchParams(searchParams.toString());
     params.set(slot, player.id);
     router.push(`/comparar?${params.toString()}`);
-    setQuery(`${player.gameName}#${player.tagLine}`);
+    setQuery(displayName(player));
     setOpen(false);
   }
 
@@ -64,7 +65,10 @@ export function PlayerPicker({ slot, label }: { slot: "a" | "b"; label: string }
                 onClick={() => select(r)}
               >
                 <span>
-                  {r.gameName}#{r.tagLine}
+                  {displayName(r)}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {r.gameName}#{r.tagLine}
+                  </span>
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {formatRank(r.tier, r.rankDivision)} · {r.leaguePoints} LP

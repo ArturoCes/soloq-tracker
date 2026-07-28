@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { removePlayerAction, togglePlayerActiveAction } from "@/lib/actions/admin";
-import { formatRank } from "@/lib/ranks";
+import { displayName, formatRank } from "@/lib/ranks";
 
 type Player = {
   id: string;
   gameName: string;
   tagLine: string;
+  streamerName: string | null;
   platform: string;
   isActive: boolean;
   isUnofficial: boolean;
@@ -31,7 +32,10 @@ export function PlayerList({ players }: { players: Player[] }) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="font-medium">
-                {p.gameName} <span className="text-xs text-muted-foreground">#{p.tagLine}</span>
+                {displayName(p)}{" "}
+                <span className="text-xs text-muted-foreground">
+                  {p.gameName}#{p.tagLine}
+                </span>
               </span>
               <Badge variant="outline" className="text-xs">
                 {p.platform.toUpperCase()}

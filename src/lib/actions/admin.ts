@@ -24,6 +24,7 @@ export async function addPlayerAction(_prevState: { error: string } | null, form
     .trim()
     .replace(/^#/, "");
   const platform = String(formData.get("platform") ?? "").trim();
+  const streamerName = String(formData.get("streamerName") ?? "").trim() || null;
 
   if (!gameName || !tagLine || !platform) {
     return { error: "Riot ID y región son obligatorios" };
@@ -44,6 +45,7 @@ export async function addPlayerAction(_prevState: { error: string } | null, form
       gameName,
       tagLine,
       platform,
+      streamerName,
       puuid: `pending-${crypto.randomUUID()}`,
     },
   });

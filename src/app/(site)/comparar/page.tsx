@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { getHeadToHead, getPlayerById, type HeadToHeadMatch } from "@/lib/queries/players";
 import { championIconUrl, getLatestDDragonVersion } from "@/lib/riot/ddragon";
-import { formatRank, formatRole, winrate } from "@/lib/ranks";
+import { displayName, formatRank, formatRole, winrate } from "@/lib/ranks";
 import { Badge } from "@/components/ui/badge";
 import { PlayerPicker } from "@/components/player-picker";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -51,7 +51,10 @@ export default async function ComparePage({
                   <PlayerAvatar ddragonVersion={ddragonVersion} profileIconId={p.profileIconId} size={48} />
                   <div>
                     <p className="font-semibold">
-                      {p.gameName}#{p.tagLine}
+                      {displayName(p)}{" "}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {p.gameName}#{p.tagLine}
+                      </span>
                     </p>
                     <p className="text-sm text-muted-foreground">{formatRank(p.tier, p.rankDivision)}</p>
                   </div>
@@ -115,7 +118,7 @@ export default async function ComparePage({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Evolución — {playerA.gameName}
+                  Evolución — {displayName(playerA)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -131,7 +134,7 @@ export default async function ComparePage({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Evolución — {playerB.gameName}
+                  Evolución — {displayName(playerB)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -172,11 +175,13 @@ function HeadToHeadSection({
   ddragonVersion,
 }: {
   headToHead: Awaited<ReturnType<typeof getHeadToHead>>;
-  playerA: { gameName: string };
-  playerB: { gameName: string };
+  playerA: { gameName: string; streamerName?: string | null };
+  playerB: { gameName: string; streamerName?: string | null };
   ddragonVersion: string;
 }) {
   const { matches, teammates, opponents } = headToHead;
+  const nameA = displayName(playerA);
+  const nameB = displayName(playerB);
 
   return (
     <div className="space-y-4">
@@ -194,7 +199,7 @@ function HeadToHeadSection({
           <div className="rounded-lg border border-border/60 p-3 text-sm">
             <p className="font-medium">Como rivales</p>
             <p className="text-muted-foreground">
-              {opponents.games} partidas · {playerA.gameName} ganó {opponents.aWins} · {playerB.gameName} ganó{" "}
+              {opponents.games} partidas · {nameA} ganó {opponents.aWins} · {nameB} ganó{" "}
               {opponents.bWins}
             </p>
           </div>
@@ -233,7 +238,7 @@ function HeadToHeadSection({
               {m.gameCreation.toLocaleDateString("es-ES")}
             </span>
             <span className={m.aWin ? "text-sm font-medium text-emerald-400" : "text-sm font-medium text-rose-400"}>
-              {m.sameTeam ? (m.aWin ? "Victoria" : "Derrota") : m.aWin ? `Gana ${playerA.gameName}` : `Gana ${playerB.gameName}`}
+              {m.sameTeam ? (m.aWin ? "Victoria" : "Derrota") : m.aWin ? `Gana ${nameA}` : `Gana ${nameB}`}
             </span>
           </li>
         ))}

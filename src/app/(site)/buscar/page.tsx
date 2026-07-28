@@ -4,6 +4,7 @@ import { getLatestDDragonVersion } from "@/lib/riot/ddragon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { RankBadge } from "@/components/rank-badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { displayName } from "@/lib/ranks";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,10 @@ export default async function SearchPage({
                 <PlayerAvatar ddragonVersion={ddragonVersion} profileIconId={p.profileIconId} size={40} />
                 <div className="flex-1">
                   <p className="font-medium">
-                    {p.gameName} <span className="text-xs text-muted-foreground">#{p.tagLine}</span>
+                    {displayName(p)}{" "}
+                    <span className="text-xs text-muted-foreground">
+                      {p.gameName}#{p.tagLine}
+                    </span>
                   </p>
                   <RankBadge tier={p.tier} division={p.rankDivision} className="text-xs" />
                 </div>

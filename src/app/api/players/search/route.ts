@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
       id: p.id,
       gameName: p.gameName,
       tagLine: p.tagLine,
+      streamerName: p.streamerName,
       profileIconId: p.profileIconId,
       tier: p.tier,
       rankDivision: p.rankDivision,

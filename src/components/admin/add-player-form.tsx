@@ -37,6 +37,10 @@ export function AddPlayerForm() {
         <Input id="tagLine" name="tagLine" placeholder="EUW" required className="w-24" />
       </div>
       <div className="space-y-1.5">
+        <Label htmlFor="streamerName">Nombre de streamer (opcional)</Label>
+        <Input id="streamerName" name="streamerName" placeholder="Skain" className="w-40" />
+      </div>
+      <div className="space-y-1.5">
         <Label htmlFor="platform">Región</Label>
         <Select name="platform" defaultValue="euw1">
           <SelectTrigger id="platform" className="w-32">

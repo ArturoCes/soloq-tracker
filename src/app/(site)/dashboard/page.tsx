@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { getDashboardStats } from "@/lib/queries/dashboard";
-import { winrate } from "@/lib/ranks";
+import { displayName, winrate } from "@/lib/ranks";
 import { formatPrizeEur } from "@/lib/prizes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +201,7 @@ function HighlightCard({
   icon: React.ReactNode;
   title: string;
   subtitle: string;
-  player?: { id: string; gameName: string; tagLine: string } | null;
+  player?: { id: string; gameName: string; tagLine: string; streamerName?: string | null } | null;
   value: string | null;
   prize?: string | null;
 }) {
@@ -218,8 +218,11 @@ function HighlightCard({
         {player && value ? (
           <Link href={`/jugador/${player.id}`} className="hover:underline">
             <p className="text-lg font-semibold">
-              {player.gameName}
-              <span className="text-sm font-normal text-muted-foreground">#{player.tagLine}</span>
+              {displayName(player)}
+              <span className="text-sm font-normal text-muted-foreground">
+                {" "}
+                {player.gameName}#{player.tagLine}
+              </span>
             </p>
             <p className="text-2xl font-bold text-primary">{value}</p>
             {prize && (

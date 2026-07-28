@@ -13,6 +13,7 @@ import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
 import type { LeaderboardEntry } from "@/lib/queries/players";
 import { formatPrizeEur, prizeForPosition } from "@/lib/prizes";
+import { displayName } from "@/lib/ranks";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function LeaderboardTable({
@@ -58,8 +59,10 @@ export function LeaderboardTable({
                   />
                   <span className="flex flex-col">
                     <span className="flex items-center gap-2 font-medium group-hover:text-primary">
-                      {entry.gameName}
-                      <span className="text-xs text-muted-foreground">#{entry.tagLine}</span>
+                      {displayName(entry)}
+                      <span className="text-xs text-muted-foreground">
+                        {entry.gameName}#{entry.tagLine}
+                      </span>
                     </span>
                     {entry.isUnofficial && (
                       <Badge variant="outline" className="mt-0.5 w-fit gap-1 border-emerald-500/40 text-emerald-400">

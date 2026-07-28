@@ -51,3 +51,8 @@ export function winrate(wins: number, losses: number): number {
   if (total === 0) return 0;
   return Math.round((wins / total) * 1000) / 10;
 }
+
+/** The name to show first: the streamer's public alias if known, otherwise their Riot ID. */
+export function displayName(player: { streamerName?: string | null; gameName: string }): string {
+  return player.streamerName || player.gameName;
+}

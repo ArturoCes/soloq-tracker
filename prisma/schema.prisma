@@ -16,6 +16,7 @@ model Player {
   id              String   @id @default(cuid())
   gameName        String
   tagLine         String
+  streamerName    String? // public/streaming alias shown instead of the raw Riot ID, when known
   puuid           String   @unique
   summonerId      String?
   profileIconId   Int      @default(0)

@@ -5,6 +5,7 @@ export type TimelineStanding = {
   playerId: string;
   gameName: string;
   tagLine: string;
+  streamerName: string | null;
   isUnofficial: boolean;
   profileIconId: number;
   tier: string;
@@ -51,6 +52,7 @@ export async function getTimelineSnapshots(): Promise<TimelineSnapshot[]> {
           playerId: player.id,
           gameName: player.gameName,
           tagLine: player.tagLine,
+          streamerName: player.streamerName,
           isUnofficial: player.isUnofficial,
           profileIconId: player.profileIconId,
           tier: latest.tier,

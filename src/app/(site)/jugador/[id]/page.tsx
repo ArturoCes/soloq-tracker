@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPlayerById } from "@/lib/queries/players";
 import { getLatestDDragonVersion, championIconUrl } from "@/lib/riot/ddragon";
-import { formatRank, formatRole, winrate } from "@/lib/ranks";
+import { displayName, formatRank, formatRole, winrate } from "@/lib/ranks";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
@@ -23,7 +23,7 @@ export async function generateMetadata({
   const player = await getPlayerById(id);
   if (!player) return {};
 
-  const title = `${player.gameName}#${player.tagLine} — ${formatRank(player.tier, player.rankDivision)}`;
+  const title = `${displayName(player)} — ${formatRank(player.tier, player.rankDivision)}`;
   const description = `${player.leaguePoints} LP · ${player.wins}V ${player.losses}D · Perfil de seguimiento no oficial del SoloQ Challenge.`;
   return {
     title,
@@ -70,8 +70,10 @@ export default async function PlayerProfilePage({
         <PlayerAvatar ddragonVersion={ddragonVersion} profileIconId={player.profileIconId} size={72} />
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            {player.gameName}
-            <span className="text-base font-normal text-muted-foreground">#{player.tagLine}</span>
+            {displayName(player)}
+            <span className="text-base font-normal text-muted-foreground">
+              {player.gameName}#{player.tagLine}
+            </span>
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <RankBadge tier={player.tier} division={player.rankDivision} className="text-base" />

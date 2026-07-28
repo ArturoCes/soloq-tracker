@@ -90,9 +90,12 @@ export async function getHeadToHead(playerAId: string, playerBId: string) {
 export async function searchPlayers(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  // SQLite's `contains` filter is case-sensitive in Prisma, so filter in JS instead.
   const players = await prisma.player.findMany({ where: { isActive: true } });
   return players
-    .filter((p) => `${p.gameName}#${p.tagLine}`.toLowerCase().includes(q))
+    .filter(
+      (p) =>
+        `${p.gameName}#${p.tagLine}`.toLowerCase().includes(q) ||
+        p.streamerName?.toLowerCase().includes(q)
+    )
     .slice(0, 10);
 }

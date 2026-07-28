@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getLatestDDragonVersion } from "@/lib/riot/ddragon";
-import { winrate } from "@/lib/ranks";
+import { displayName, winrate } from "@/lib/ranks";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
@@ -25,8 +25,10 @@ export default async function OverlayPage() {
           <PlayerAvatar ddragonVersion={ddragonVersion} profileIconId={player.profileIconId} size={48} />
           <div>
             <p className="font-semibold text-white">
-              {player.gameName}
-              <span className="ml-1 text-sm font-normal text-white/60">#{player.tagLine}</span>
+              {displayName(player)}
+              <span className="ml-1 text-sm font-normal text-white/60">
+                {player.gameName}#{player.tagLine}
+              </span>
             </p>
             <div className="flex items-center gap-2 text-sm">
               <RankBadge tier={player.tier} division={player.rankDivision} />
