@@ -47,6 +47,7 @@ export function NavBar({ liveBadge }: { liveBadge?: ReactNode }) {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={false}
               className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {link.label}

@@ -46,10 +46,10 @@ export default async function AdminPage() {
         <CardHeader>
           <CardTitle>Actualizar clasificación</CardTitle>
           <CardDescription>
-            Cada clic actualiza un lote de hasta {BATCH_SIZE} jugadores (los menos actualizados
-            recientemente primero) para no exceder el límite de tiempo de Vercel. Con{" "}
-            {activeCount} jugadores activos, dale al botón varias veces seguidas para cubrir toda
-            la lista.
+            Un clic recorre automáticamente todos los lotes (de {BATCH_SIZE} jugadores cada uno)
+            hasta cubrir a los {activeCount} jugadores activos, sin exceder el límite de tiempo de
+            Vercel por petición. Tu propia cuenta se actualiza en cada lote. Puedes pulsar
+            &quot;Detener&quot; en cualquier momento.
             {lastUpdates[0] && (
               <>
                 {" "}

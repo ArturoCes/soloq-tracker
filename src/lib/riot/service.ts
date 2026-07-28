@@ -193,11 +193,18 @@ export async function runFullUpdate(): Promise<UpdateSummary> {
 
   const updateLog = await prisma.updateLog.create({ data: {} });
   const totalActivePlayers = await prisma.player.count({ where: { isActive: true } });
-  const players = await prisma.player.findMany({
-    where: { isActive: true },
+
+  // The site owner's own account updates every batch regardless of turn order — it's the one
+  // account someone is actually watching live, so it shouldn't have to wait out a large roster.
+  const rest = await prisma.player.findMany({
+    where: { isActive: true, isUnofficial: false },
     orderBy: { updatedAt: "asc" },
-    take: BATCH_SIZE,
+    take: BATCH_SIZE - 1,
   });
+  const unofficial = await prisma.player.findFirst({
+    where: { isActive: true, isUnofficial: true },
+  });
+  const players = unofficial ? [unofficial, ...rest] : rest;
 
   let updated = 0;
   let failed = 0;
