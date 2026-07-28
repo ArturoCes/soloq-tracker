@@ -13,7 +13,14 @@ import type { RiotMatchDto } from "./types";
 const RANKED_SOLO_QUEUE = "RANKED_SOLO_5x5";
 const MATCH_LOOKBACK_DAYS = 30;
 // Safety cap so a single very active player can't blow up one update run's API budget.
-const MAX_MATCHES_PER_UPDATE = 100;
+// Kept small on purpose: with a large roster, a per-click Server Action has to fit inside
+// Vercel's maxDuration (see (site)/admin/page.tsx), so the per-player match budget has to
+// stay modest for BATCH_SIZE players to fit comfortably within that window.
+const MAX_MATCHES_PER_UPDATE = 15;
+
+// How many players a single "Actualizar clasificación" click processes. With a large roster,
+// clicking repeatedly cycles through everyone (players are picked oldest-updated-first).
+export const BATCH_SIZE = 12;
 
 /** Ensures the site owner's own account exists as a Player row flagged isUnofficial. */
 export async function ensureUnofficialPlayer() {
@@ -172,14 +179,25 @@ export type UpdateSummary = {
   playersUpdated: number;
   playersFailed: number;
   status: "success" | "partial" | "error";
+  totalActivePlayers: number;
+  batchSize: number;
 };
 
-/** The "Actualizar clasificación" flow: refresh every active player from the Riot API. */
+/**
+ * The "Actualizar clasificación" flow. Processes at most `batchSize` players per call — the
+ * ones updated longest ago first — so clicking repeatedly cycles through a large roster
+ * without any single click exceeding the Server Action's time limit.
+ */
 export async function runFullUpdate(): Promise<UpdateSummary> {
   await ensureUnofficialPlayer();
 
   const updateLog = await prisma.updateLog.create({ data: {} });
-  const players = await prisma.player.findMany({ where: { isActive: true } });
+  const totalActivePlayers = await prisma.player.count({ where: { isActive: true } });
+  const players = await prisma.player.findMany({
+    where: { isActive: true },
+    orderBy: { updatedAt: "asc" },
+    take: BATCH_SIZE,
+  });
 
   let updated = 0;
   let failed = 0;
@@ -198,5 +216,12 @@ export async function runFullUpdate(): Promise<UpdateSummary> {
     data: { finishedAt: new Date(), playersUpdated: updated, playersFailed: failed, status },
   });
 
-  return { updateLogId: updateLog.id, playersUpdated: updated, playersFailed: failed, status };
+  return {
+    updateLogId: updateLog.id,
+    playersUpdated: updated,
+    playersFailed: failed,
+    status,
+    totalActivePlayers,
+    batchSize: BATCH_SIZE,
+  };
 }

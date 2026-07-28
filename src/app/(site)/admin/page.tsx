@@ -7,6 +7,7 @@ import { AddPlayerForm } from "@/components/admin/add-player-form";
 import { UnofficialAccountForm } from "@/components/admin/unofficial-account-form";
 import { PlayerList } from "@/components/admin/player-list";
 import { ApiErrorList } from "@/components/admin/api-error-list";
+import { BATCH_SIZE } from "@/lib/riot/service";
 
 export const dynamic = "force-dynamic";
 // The Riot API rate limiter serializes requests, so updating many players
@@ -25,6 +26,7 @@ export default async function AdminPage() {
   ]);
 
   const unofficial = players.find((p) => p.isUnofficial);
+  const activeCount = players.filter((p) => p.isActive).length;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-10">
@@ -44,7 +46,10 @@ export default async function AdminPage() {
         <CardHeader>
           <CardTitle>Actualizar clasificación</CardTitle>
           <CardDescription>
-            Consulta la Riot API para todos los jugadores activos y reordena la clasificación.
+            Cada clic actualiza un lote de hasta {BATCH_SIZE} jugadores (los menos actualizados
+            recientemente primero) para no exceder el límite de tiempo de Vercel. Con{" "}
+            {activeCount} jugadores activos, dale al botón varias veces seguidas para cubrir toda
+            la lista.
             {lastUpdates[0] && (
               <>
                 {" "}

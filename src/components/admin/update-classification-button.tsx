@@ -15,20 +15,26 @@ export function UpdateClassificationButton() {
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const toastId = toast.loading("Consultando la Riot API y actualizando la clasificación...");
+          const toastId = toast.loading("Consultando la Riot API y actualizando este lote de jugadores...");
           try {
             const summary = await updateClassificationAction();
+            const remaining = Math.max(
+              0,
+              summary.totalActivePlayers - summary.playersUpdated - summary.playersFailed
+            );
+            const progress = `Lote: ${summary.playersUpdated + summary.playersFailed}/${summary.batchSize} · Quedan ~${remaining} de ${summary.totalActivePlayers} sin tocar en esta ronda.`;
+
             if (summary.status === "success") {
-              toast.success(`Clasificación actualizada: ${summary.playersUpdated} jugadores.`, {
+              toast.success(`${summary.playersUpdated} jugadores actualizados. ${progress}`, {
                 id: toastId,
               });
             } else if (summary.status === "partial") {
               toast.warning(
-                `Actualizado con errores: ${summary.playersUpdated} ok, ${summary.playersFailed} fallidos.`,
+                `${summary.playersUpdated} ok, ${summary.playersFailed} fallidos. ${progress}`,
                 { id: toastId }
               );
             } else {
-              toast.error("No se pudo actualizar ningún jugador. Revisa los errores de la API.", {
+              toast.error("No se pudo actualizar ningún jugador de este lote. Revisa los errores de la API.", {
                 id: toastId,
               });
             }
@@ -39,7 +45,7 @@ export function UpdateClassificationButton() {
       }
     >
       <RefreshCw className={pending ? "size-4 animate-spin" : "size-4"} />
-      {pending ? "Actualizando..." : "Actualizar clasificación"}
+      {pending ? "Actualizando lote..." : "Actualizar siguiente lote"}
     </Button>
   );
 }
