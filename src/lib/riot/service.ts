@@ -8,7 +8,6 @@ import {
   RiotApiError,
 } from "./client";
 import { rankValue } from "./regions";
-import type { RiotMatchDto } from "./types";
 
 const RANKED_SOLO_QUEUE = "RANKED_SOLO_5x5";
 const MATCH_LOOKBACK_DAYS = 30;
@@ -65,29 +64,46 @@ async function updateOnePlayer(
       count: MAX_MATCHES_PER_UPDATE,
       startTime,
     });
-    const matches: RiotMatchDto[] = [];
-    for (const matchId of matchIds) {
-      const match = await getMatchById(matchId, player.platform);
-      matches.push(match);
-    }
 
-    const participantEntries = matches
+    // Completed matches never change, so re-fetching ones we already stored from a previous
+    // update run just burns rate-limit budget for nothing — this is the biggest lever we have
+    // over how long a click takes, since match detail calls dominate the per-player API budget.
+    const alreadyStored = await prisma.matchHistory.findMany({
+      where: { playerId: player.id, matchId: { in: matchIds } },
+    });
+    const storedIds = new Set(alreadyStored.map((m) => m.matchId));
+    const newMatchIds = matchIds.filter((id) => !storedIds.has(id));
+
+    const newMatches = await Promise.all(
+      newMatchIds.map((matchId) => getMatchById(matchId, player.platform))
+    );
+
+    const newParticipantEntries = newMatches
       .map((match) => {
         const participant = match.info.participants.find((p) => p.puuid === puuid);
         return participant ? { match, participant } : null;
       })
-      .filter((entry): entry is { match: (typeof matches)[number]; participant: (typeof matches)[number]["info"]["participants"][number] } => entry !== null);
+      .filter((entry): entry is { match: (typeof newMatches)[number]; participant: (typeof newMatches)[number]["info"]["participants"][number] } => entry !== null);
 
     const roleCounts = new Map<string, number>();
     let kdaSum = 0;
-    for (const { participant: p } of participantEntries) {
+    let kdaCount = 0;
+    for (const stored of alreadyStored) {
+      if (stored.role) {
+        roleCounts.set(stored.role, (roleCounts.get(stored.role) ?? 0) + 1);
+      }
+      kdaSum += (stored.kills + stored.assists) / Math.max(1, stored.deaths);
+      kdaCount++;
+    }
+    for (const { participant: p } of newParticipantEntries) {
       if (p.teamPosition) {
         roleCounts.set(p.teamPosition, (roleCounts.get(p.teamPosition) ?? 0) + 1);
       }
       kdaSum += (p.kills + p.assists) / Math.max(1, p.deaths);
+      kdaCount++;
     }
     const mainRole = [...roleCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-    const avgKda = participantEntries.length > 0 ? kdaSum / participantEntries.length : null;
+    const avgKda = kdaCount > 0 ? kdaSum / kdaCount : null;
 
     const newTier = soloQueue?.tier ?? "UNRANKED";
     const newDivision = soloQueue?.rank ?? null;
@@ -134,7 +150,7 @@ async function updateOnePlayer(
       });
     });
 
-    for (const { match, participant: p } of participantEntries) {
+    for (const { match, participant: p } of newParticipantEntries) {
       const matchFields = {
         champion: p.championName,
         win: p.win,
