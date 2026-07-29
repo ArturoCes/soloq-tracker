@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { rankValue } from "@/lib/riot/regions";
 import { winrate } from "@/lib/ranks";
 
-export type LeaderboardEntry = Awaited<ReturnType<typeof getLeaderboard>>[number];
+export type LeaderboardEntry = Awaited<ReturnType<typeof getLeaderboard>>["highElo"][number];
 
 export async function getLeaderboard() {
   const players = await prisma.player.findMany({
@@ -21,7 +21,10 @@ export async function getLeaderboard() {
 
   withRank.sort((a, b) => b.rankVal - a.rankVal || a.displayOrder - b.displayOrder);
 
-  return withRank;
+  return {
+    highElo: withRank.filter((p) => p.eloBracket === "HIGH_ELO"),
+    lowElo: withRank.filter((p) => p.eloBracket !== "HIGH_ELO"),
+  };
 }
 
 export async function getPlayerById(id: string) {

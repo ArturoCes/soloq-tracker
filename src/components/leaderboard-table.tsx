@@ -12,15 +12,22 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import { RankBadge } from "@/components/rank-badge";
 import { DeltaBadge } from "@/components/delta-badge";
 import type { LeaderboardEntry } from "@/lib/queries/players";
-import { formatPrizeEur, prizeForPosition } from "@/lib/prizes";
+import { formatPrizeEur, prizeForPosition, type EloBracket } from "@/lib/prizes";
 import { displayName } from "@/lib/ranks";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
+const BRACKET_LABEL_ES: Record<EloBracket, string> = {
+  HIGH_ELO: "High Elo",
+  LOW_ELO: "Low Elo",
+};
+
 export function LeaderboardTable({
   entries,
+  bracket,
   ddragonVersion,
 }: {
   entries: LeaderboardEntry[];
+  bracket: EloBracket;
   ddragonVersion: string;
 }) {
   return (
@@ -41,7 +48,7 @@ export function LeaderboardTable({
         </TableHeader>
         <TableBody>
           {entries.map((entry, index) => {
-            const prize = prizeForPosition(index + 1);
+            const prize = prizeForPosition(index + 1, bracket);
             return (
             <TableRow
               key={entry.id}
@@ -92,7 +99,8 @@ export function LeaderboardTable({
                     </TooltipTrigger>
                     <TooltipContent>
                       Puesto {index + 1}: {formatPrizeEur(prize)} según el baremo oficial del SoloQ
-                      Challenge (Low Elo). Estimado sobre esta clasificación, no la oficial.
+                      Challenge ({BRACKET_LABEL_ES[bracket]}). Estimado sobre esta clasificación, no
+                      la oficial.
                     </TooltipContent>
                   </Tooltip>
                 ) : (
@@ -115,8 +123,9 @@ export function LeaderboardTable({
       {entries.length > 0 && (
         <p className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
           * Premio orientativo según el baremo oficial por posición del SoloQ Challenge (categoría
-          Low Elo). No es la clasificación oficial del reto: se calcula sobre los jugadores que
-          esta web rastrea, no sobre todos los participantes reales.
+          {" "}
+          {BRACKET_LABEL_ES[bracket]}). No es la clasificación oficial del reto: se calcula sobre
+          los jugadores que esta web rastrea, no sobre todos los participantes reales.
         </p>
       )}
     </div>

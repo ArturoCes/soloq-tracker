@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [entries, ddragonVersion, lastUpdate] = await Promise.all([
+  const [{ highElo, lowElo }, ddragonVersion, lastUpdate] = await Promise.all([
     getLeaderboard(),
     getLatestDDragonVersion(),
     prisma.updateLog.findFirst({
@@ -23,7 +23,8 @@ export default async function HomePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Clasificación</h1>
           <p className="mt-1 text-muted-foreground">
-            Seguimiento no oficial del SoloQ Challenge — {entries.length} jugadores en pista.
+            Seguimiento no oficial del SoloQ Challenge — {highElo.length + lowElo.length} jugadores
+            en pista.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -43,8 +44,15 @@ export default async function HomePage() {
       </div>
 
       <FadeIn>
-        <div id="leaderboard-capture" className="bg-background p-1">
-          <LeaderboardTable entries={entries} ddragonVersion={ddragonVersion} />
+        <div id="leaderboard-capture" className="flex flex-col gap-8 bg-background p-1">
+          <div>
+            <h2 className="mb-3 text-xl font-semibold tracking-tight">High Elo</h2>
+            <LeaderboardTable entries={highElo} bracket="HIGH_ELO" ddragonVersion={ddragonVersion} />
+          </div>
+          <div>
+            <h2 className="mb-3 text-xl font-semibold tracking-tight">Low Elo</h2>
+            <LeaderboardTable entries={lowElo} bracket="LOW_ELO" ddragonVersion={ddragonVersion} />
+          </div>
         </div>
       </FadeIn>
     </div>
