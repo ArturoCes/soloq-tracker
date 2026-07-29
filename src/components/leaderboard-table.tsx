@@ -71,7 +71,7 @@ export function LeaderboardTable({
                         {entry.gameName}#{entry.tagLine}
                       </span>
                     </span>
-                    {entry.isUnofficial && (
+                    {(entry.isUnofficial || entry.isGuest) && (
                       <Badge variant="outline" className="mt-0.5 w-fit gap-1 border-emerald-500/40 text-emerald-400">
                         🟢 Participante no oficial
                       </Badge>

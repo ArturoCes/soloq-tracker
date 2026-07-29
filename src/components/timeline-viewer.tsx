@@ -107,7 +107,7 @@ export function TimelineViewer({
                     {entry.gameName}#{entry.tagLine}
                   </span>
                 </span>
-                {entry.isUnofficial && (
+                {(entry.isUnofficial || entry.isGuest) && (
                   <Badge variant="outline" className="shrink-0 border-emerald-500/40 text-[10px] text-emerald-400">
                     No oficial
                   </Badge>

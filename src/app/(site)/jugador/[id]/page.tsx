@@ -78,7 +78,7 @@ export default async function PlayerProfilePage({
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <RankBadge tier={player.tier} division={player.rankDivision} className="text-base" />
             <span className="text-muted-foreground">· {player.leaguePoints} LP</span>
-            {player.isUnofficial && (
+            {(player.isUnofficial || player.isGuest) && (
               <Badge variant="outline" className="border-emerald-500/40 text-emerald-400">
                 🟢 Participante no oficial
               </Badge>

@@ -22,7 +22,8 @@ model Player {
   profileIconId   Int      @default(0)
   platform        String   @default("euw1") // Riot platform routing value, e.g. euw1, na1, kr
 
-  isUnofficial    Boolean  @default(false) // true only for the site owner's own account
+  isUnofficial    Boolean  @default(false) // true only for the site owner's own account — the OBS overlay and the admin "mi cuenta" editor assume exactly one such row
+  isGuest         Boolean  @default(false) // shows the same "no oficial" badge as isUnofficial, for other tracked non-participants — purely cosmetic, not wired into the overlay or account editor
   isActive        Boolean  @default(true) // soft-disable without deleting history
   displayOrder    Int      @default(0) // manual ordering fallback / tie-breaker
   eloBracket      String   @default("LOW_ELO") // "HIGH_ELO" | "LOW_ELO" — fixed by the challenge organizers at signup, independent of the player's current rank
