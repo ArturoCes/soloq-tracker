@@ -90,6 +90,53 @@ export async function getHeadToHead(playerAId: string, playerBId: string) {
   };
 }
 
+export type CrossedPathMatch = {
+  matchId: string;
+  gameCreation: Date;
+  sameTeam: boolean;
+  win: boolean;
+  otherPlayerId: string;
+  otherPlayerName: string;
+  otherGameName: string;
+  otherTagLine: string;
+};
+
+/** Every other tracked player this player has shared a ranked match with, teammate or opponent. */
+export async function getCrossedPaths(playerId: string): Promise<CrossedPathMatch[]> {
+  const ownMatches = await prisma.matchHistory.findMany({ where: { playerId } });
+  if (ownMatches.length === 0) return [];
+
+  const ownByMatchId = new Map(ownMatches.map((m) => [m.matchId, m]));
+
+  const others = await prisma.matchHistory.findMany({
+    where: {
+      matchId: { in: [...ownByMatchId.keys()] },
+      playerId: { not: playerId },
+      player: { isActive: true },
+    },
+    include: {
+      player: { select: { id: true, streamerName: true, gameName: true, tagLine: true } },
+    },
+  });
+
+  return others
+    .map((other) => {
+      const own = ownByMatchId.get(other.matchId)!;
+      return {
+        matchId: other.matchId,
+        gameCreation: own.gameCreation,
+        // Two players on the same team always share the same win/loss result.
+        sameTeam: own.win === other.win,
+        win: own.win,
+        otherPlayerId: other.player.id,
+        otherPlayerName: other.player.streamerName ?? other.player.gameName,
+        otherGameName: other.player.gameName,
+        otherTagLine: other.player.tagLine,
+      };
+    })
+    .sort((a, b) => b.gameCreation.getTime() - a.gameCreation.getTime());
+}
+
 export async function searchPlayers(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return [];

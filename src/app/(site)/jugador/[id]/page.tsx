@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPlayerById } from "@/lib/queries/players";
+import { getCrossedPaths, getPlayerById } from "@/lib/queries/players";
 import { getLatestDDragonVersion, championIconUrl } from "@/lib/riot/ddragon";
 import { displayName, formatRank, formatRole, winrate } from "@/lib/ranks";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -42,6 +43,8 @@ export default async function PlayerProfilePage({
   const [player, ddragonVersion] = await Promise.all([getPlayerById(id), getLatestDDragonVersion()]);
 
   if (!player) notFound();
+
+  const crossedPaths = await getCrossedPaths(id);
 
   const chartData = [...player.lpHistory]
     .reverse()
@@ -165,6 +168,53 @@ export default async function PlayerProfilePage({
         </CardHeader>
         <CardContent>
           <MatchHistoryList matches={player.matches} ddragonVersion={ddragonVersion} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Se ha cruzado con</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {crossedPaths.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Todavía no ha coincidido en ninguna partida con otro jugador rastreado.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {crossedPaths.map((m) => (
+                <li
+                  key={`${m.matchId}-${m.otherPlayerId}`}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 py-1.5 last:border-0"
+                >
+                  <span className="flex items-center gap-2 text-sm">
+                    <Badge
+                      variant="outline"
+                      className={
+                        m.sameTeam
+                          ? "border-emerald-500/40 text-emerald-400"
+                          : "border-rose-500/40 text-rose-400"
+                      }
+                    >
+                      {m.sameTeam ? "Compañero" : "Rival"}
+                    </Badge>
+                    <Link href={`/jugador/${m.otherPlayerId}`} className="font-medium hover:text-primary">
+                      {m.otherPlayerName}
+                    </Link>
+                    <span className="text-xs text-muted-foreground">
+                      {m.otherGameName}#{m.otherTagLine}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {m.gameCreation.toLocaleDateString("es-ES")}
+                    <span className={m.win ? "text-emerald-400" : "text-rose-400"}>
+                      {m.win ? "Victoria" : "Derrota"}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>
